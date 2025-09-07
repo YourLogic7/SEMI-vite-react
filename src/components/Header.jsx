@@ -83,7 +83,7 @@ export default function Header({ user, onLoginClick, onRegisterClick, onLogoutCl
                                 <>
                                     {/* --- PERBAIKAN DI SINI --- */}
                                     <button onClick={() => handleNavigate('userProfile')} className="flex items-center gap-2 text-sm font-semibold hover:text-teal-600 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000</button> 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
                                         <span>Halo, {user.displayName}</span>
                                     </button>
                                     <button onClick={onLogoutClick} className="px-4 py-2 text-sm font-semibold text-red-600 border border-red-600 rounded-lg hover:bg-red-50">Keluar</button>
@@ -104,3 +104,28 @@ export default function Header({ user, onLoginClick, onRegisterClick, onLogoutCl
         </header>
     );
 }
+
+// ini buat ubah tulisan ketika sudah daftar toko
+                        // {hasStore ? (
+                        //     <a
+                        //         href="#"
+                        //         onClick={e => {
+                        //             e.preventDefault();
+                        //             handleNavigate('myStore');
+                        //         }}
+                        //         className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
+                        //     >
+                        //         Toko Saya
+                        //     </a>
+                        // ) : (
+                        //     <a
+                        //         href="#"
+                        //         onClick={e => {
+                        //             e.preventDefault();
+                        //             onOpenStoreClick();
+                        //         }}
+                        //         className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
+                        //     >
+                        //         Mulai Berjualan
+                        //     </a>
+                        // )}
