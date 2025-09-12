@@ -22,13 +22,13 @@ export default function Header({ user, onLoginClick, onRegisterClick, onLogoutCl
             <div className="bg-slate-100 border-b border-slate-200">
                 <div className="container mx-auto px-4 flex justify-end items-center text-xs text-slate-600 h-8">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => handleNavigate('liveStream')} className="relative font-semibold text-red-600 flex items-center gap-1">
+                        {/* <button onClick={() => handleNavigate('liveStream')} className="relative font-semibold text-red-600 flex items-center gap-1" display="hidden">
                             <span className="absolute -top-1 -left-1 w-3 h-3">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                             </span>
                             LIVE
-                        </button>
+                        </button> */}
                         <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('bantuan'); }} className="hover:text-teal-600">Bantuan</a>
                         <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('blog'); }} className="hover:text-teal-600">Blog</a>
                         <a href="https://satuperdua.my.id/" target="_blank" rel="noopener noreferrer" className="font-semibold text-teal-600 hover:underline">Gabung Komunitas</a>
