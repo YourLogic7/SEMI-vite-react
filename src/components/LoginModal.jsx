@@ -1,8 +1,38 @@
 import React from 'react';
+// import axios from 'axios';
+
 
 // Komponen untuk modal login
 export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onCredentialsSuccess, openMessageModal }) {
     if (!isOpen) return null;
+
+// // ini untuk database mongo
+//     const [formData, setFormData] = useState({
+//         email: '',
+//         password: '',
+//     });
+
+//     const handleChange = (e) => {
+//         setFormData({
+//         ...formData,
+//         [e.target.name]: e.target.value,
+//         });
+//     };
+
+//     // ini untuk AXIOS
+
+//     const handleLogin = async (e) => {
+//         e.preventDefault();
+//         try {
+//         const response = await axios.post('http://localhost:5000/api/users/login', formData);
+//         console.log('Login berhasil:', response.data);
+//         alert('Login berhasil!');
+//         // Di sini Anda bisa mengarahkan pengguna ke halaman dashboard atau menyimpan token autentikasi (opsional)
+//         } catch (error) {
+//             console.error('Ada kesalahan saat login:', error);
+//             alert('Login gagal. Periksa email dan kata sandi Anda.');
+//         }
+//     };
 
     const handleLogin = (e) => { 
         e.preventDefault(); 
@@ -23,6 +53,8 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onCred
                     <h3 className="text-xl font-semibold">Masuk</h3>
                     <button onClick={onClose} className="text-2xl font-light leading-none p-1">&times;</button>
                 </div>
+                {/* nanti tambahin ini sesuai object value={formData.password} onChange={handleChange} */}
+
                 <div className="p-6">
                     <form onSubmit={handleLogin}>
                         <div className="space-y-4">
