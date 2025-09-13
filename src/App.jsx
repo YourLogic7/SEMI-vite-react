@@ -40,13 +40,15 @@ import SuperAdminLogin from './components/SuperAdminLogin';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import MessageModal from './components/MessageModal';
 import ConfirmationModal from './components/ConfirmationModal';
+import './index.css';
 
 // Impor data tiruan
 import { initialUsers, initialSellers, initialProducts, initialOrders, flashSaleProducts } from './data.js';
-import './index.css';
+
 
 // Kunci untuk localStorage
 const LOCAL_STORAGE_KEY = 'semi_marketplace_state';
+
 
 // Fungsi untuk memuat state dari localStorage
 const loadState = () => {
