@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api from '../api';
 
 // Komponen untuk modal pendaftaran pengguna baru
-export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegisterSubmit}) {
+export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegister}) {
     if (!isOpen) return null;
     
     // state untuk menampilkan error
@@ -12,7 +12,8 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
 // ini untuk set form ke database Mongo
 
     const [formData, setFormData] = useState({
-        username: '',
+        name: '',
+        noHandphone: '',
         email: '',
         password: '',
     });
@@ -36,7 +37,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
             const response = await api.post('/api/users/register', formData);
             console.log('Pendaftaran berhasil:', response.data);
             alert('Pendaftaran berhasil!');
-            onRegisterSubmit(formData.username, formData.email);
+            onRegister(formData.name, formData.noHandphone, formData.email, formData.password);
             onClose();
         } catch (error) {
             console.error('Ada kesalahan saat mendaftar:', error);
@@ -56,7 +57,8 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
                 <div className="p-6">
                     <form onSubmit={handleRegister}>
                         <div className="space-y-4">
-                            <input name="username" type="text"  placeholder="Username" className="w-full p-2.5 border rounded-md" value={formData.username} onChange={handleChange}  required />
+                            <input name="name" type="text"  placeholder="Nama Lengkap" className="w-full p-2.5 border rounded-md" value={formData.name} onChange={handleChange}  required />
+                            <input name="noHandphone" type="text"  placeholder="Nomor Handphone" className="w-full p-2.5 border rounded-md" value={formData.noHandphone} onChange={handleChange}  required />
                             <input name="email" type="email" placeholder="Email" className="w-full p-2.5 border rounded-md" value={formData.email} onChange={handleChange}  required />
                             <input name="password" type="password" placeholder="Password (min. 6 karakter)" className="w-full p-2.5 border rounded-md" value={formData.password} onChange={handleChange}  required />
                         </div>
