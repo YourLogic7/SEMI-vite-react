@@ -22,13 +22,13 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, noHandphone } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'Email sudah terdaftar.' });
     }
 
-    const newUser = new User({ name, email, password, displayName: name });
+    const newUser = new User({ name, email, password, noHandphone, displayName: name });
     await newUser.save();
     
     const userResponse = newUser.toObject();

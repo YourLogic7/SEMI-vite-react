@@ -413,11 +413,22 @@ export default function App() {
         handleLoginSuccess(pendingUserEmail);
     };
     
-    const handleRegister = (name, noHandphone, email, password) => {
-        const newUser = { id: Date.now(), name, noHandphone, email, password, role: 'customer', displayName: name };
-        dispatch({ type: 'SET_USER', payload: newUser });
-        dispatch({ type: 'ADD_USER', payload: newUser });
-        dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat bergabung, ${name}! Akun Anda berhasil dibuat.`, type: 'info', read: false } });
+    const handleRegister = async (name, noHandphone, email, password) => {
+        try {
+            const response = await api.post('/api/users/register', { name, email, password, noHandphone });
+            const { user: newUser } = response.data;
+            
+            dispatch({ type: 'SET_USER', payload: newUser });
+            dispatch({ type: 'ADD_USER', payload: newUser });
+            dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat bergabung, ${name}! Akun Anda berhasil dibuat.`, type: 'info', read: false } });
+            
+        } catch (error) {
+            console.error("Gagal mendaftar:", error.response ? error.response.data : error.message);
+            openMessageModal(
+                'Pendaftaran Gagal', 
+                error.response?.data?.message || 'Terjadi kesalahan saat mencoba mendaftar. Silakan coba lagi.'
+            );
+        }
     };
 
     const handleLogout = () => {
