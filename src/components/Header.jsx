@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Komponen untuk bagian atas (header) halaman web (dengan notifikasi fungsional)
 export default function Header({ user, onLoginClick, onRegisterClick, onLogoutClick, onTrackOrderClick, onCartClick, cartItemCount, onNavigate, searchQuery, onSearchSubmit, onOpenStoreClick, notifications, setNotifications }) {

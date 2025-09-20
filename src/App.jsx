@@ -42,40 +42,7 @@ import MessageModal from './components/MessageModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import './index.css';
 
-// Kunci untuk localStorage
-const LOCAL_STORAGE_KEY = 'semi_marketplace_state';
 
-// Fungsi untuk memuat state dari localStorage
-const loadState = () => {
-    try {
-        const serializedState = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (serializedState === null) {
-            return undefined;
-        }
-        const savedState = JSON.parse(serializedState);
-        const convertedState = {
-            ...savedState,
-            products: savedState.products.map(p => ({ ...p, price: Number(p.price) })),
-            flashSaleProducts: savedState.flashSaleProducts.map(p => ({ ...p, price: Number(p.price) })),
-            orders: savedState.orders.map(o => ({ ...o, total: Number(o.total) })),
-            cart: savedState.cart.map(item => ({ ...item, price: Number(item.price), quantity: Number(item.quantity) })),
-        };
-        return convertedState;
-    } catch (err) {
-        console.error("Gagal memuat state dari localStorage:", err);
-        return undefined;
-    }
-};
-
-// Fungsi untuk menyimpan state ke localStorage
-const saveState = (state) => {
-    try {
-        const serializedState = JSON.stringify(state);
-        localStorage.setItem(LOCAL_STORAGE_KEY, serializedState);
-    } catch (err) {
-        console.error("Gagal menyimpan state ke localStorage:", err);
-    }
-};
 
 // Reducer untuk mengelola seluruh state aplikasi
 const appReducer = (state, action) => {
@@ -249,9 +216,7 @@ const appReducer = (state, action) => {
     }
 };
 
-const storedState = loadState();
-
-const initialState = storedState ? { ...storedState, isLoading: true } : {
+const initialState = {
     isLoading: true,
     user: null,
     currentView: { page: 'home', data: null },
@@ -287,18 +252,7 @@ const initialState = storedState ? { ...storedState, isLoading: true } : {
 export default function App() {
     const [state, dispatch] = useReducer(appReducer, initialState);
 
-    useEffect(() => {
-        const stateToSave = {
-            user: state.user,
-            users: state.users,
-            sellers: state.sellers,
-            products: state.products,
-            orders: state.orders,
-            cart: state.cart,
-            wishlist: state.wishlist,
-        };
-        saveState(stateToSave);
-    }, [state.user, state.users, state.sellers, state.products, state.orders, state.cart, state.wishlist]);
+
 
     useEffect(() => {
         const fetchInitialData = async () => {
