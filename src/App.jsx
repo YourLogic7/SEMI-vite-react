@@ -473,8 +473,13 @@ export default function App() {
 
     const handleOpenStoreClick = () => {
         if (!requireLogin(() => {})) return;
-        if (user?.role && user?.role !== 'customer') {
-            dispatch({ type: 'NAVIGATE', payload: { page: `${user?.role}Dashboard`, data: null } });
+
+        if (user?.role?.includes('seller')) {
+            dispatch({ type: 'NAVIGATE', payload: { page: 'sellerDashboard', data: null } });
+        } else if (user?.role?.includes('reseller')) {
+            dispatch({ type: 'NAVIGATE', payload: { page: 'resellerDashboard', data: null } });
+        } else if (user?.role?.includes('affiliate')) {
+            dispatch({ type: 'NAVIGATE', payload: { page: 'affiliateDashboard', data: null } });
         } else {
             dispatch({ type: 'OPEN_MODAL', payload: { name: 'isMulaiJualanModalOpen' } });
         }
@@ -489,29 +494,43 @@ export default function App() {
     
     const handleRoleRegistrationSuccess = async (role, data) => {
         try {
+            if (!user || !user._id) {
+                openMessageModal('Pendaftaran Gagal', 'Anda harus login untuk mendaftarkan peran.');
+                return;
+            }
+
+            let updatedRoles = [...user.role]; // Get current roles
+            if (!updatedRoles.includes(role)) {
+                updatedRoles.push(role); // Add new role if not present
+            }
+
+            // Update user's roles in the database
+            const userRoleUpdateResponse = await api.put(`/api/users/${user._id}/roles`, { roles: updatedRoles });
+            const updatedUser = userRoleUpdateResponse.data.user; // Get the updated user object from backend
+
             if (role === 'seller') {
-                if (!user || !user._id) {
-                    openMessageModal('Pendaftaran Gagal', 'Anda harus login untuk mendaftarkan toko.');
-                    return;
-                }
                 // Map data from StoreRegisterModal to sellerSchema
                 const storeData = {
                     userId: user._id,
                     storeName: data.storeName,
-                    province: data.province, // Assuming these are the IDs from the API
-                    city: data.regency, // Map regency to city
+                    province: data.province,
+                    city: data.regency,
                     district: data.district,
-                    bannerUrl: `https://placehold.co/1200x300/a16207/ffffff?text=${data.storeName.replace(/\s/g, '+')}` // Placeholder
+                    bannerUrl: `https://placehold.co/1200x300/a16207/ffffff?text=${data.storeName.replace(/\s/g, '+')}`
                 };
                 const response = await api.post('/api/sellers/register-store', storeData);
                 console.log('Store registration successful:', response.data);
                 dispatch({ type: 'REGISTER_ROLE_SUCCESS', payload: { role, data: response.data.seller } });
                 openMessageModal('Pendaftaran Berhasil', 'Toko Anda berhasil didaftarkan!');
             } else {
-                // For other roles, just update local state for now
+                // For other roles, just update local state for now (if they don't have specific backend registration)
                 dispatch({ type: 'REGISTER_ROLE_SUCCESS', payload: { role, data } });
-                dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat! Anda sekarang adalah seorang ${role}.`, type: 'info', read: false } });
+                openMessageModal('Pendaftaran Berhasil', `Selamat! Anda sekarang adalah seorang ${role}.`);
             }
+
+            // Update the user in the frontend state with the new roles
+            dispatch({ type: 'SET_USER', payload: updatedUser });
+
         } catch (error) {
             console.error("Gagal mendaftarkan peran:", error.response?.data || error.message);
             openMessageModal('Pendaftaran Gagal', error.response?.data?.message || 'Terjadi kesalahan saat mendaftarkan peran. Silakan coba lagi.');

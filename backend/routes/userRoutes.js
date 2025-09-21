@@ -73,4 +73,31 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// @route   PUT api/users/:id/roles
+// @desc    Update a user's roles
+// @access  Private (should be admin or self-update)
+router.put('/:id/roles', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { roles } = req.body;
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
+    }
+
+    user.role = roles; // Update the roles array
+    await user.save();
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.json({ message: 'Peran pengguna berhasil diperbarui.', user: userResponse });
+  } catch (error) {
+    console.error('Error updating user roles:', error.message);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
 export default router;
