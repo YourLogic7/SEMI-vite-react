@@ -33,17 +33,28 @@ const getProductById = async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = async (req, res) => {
+    console.log('--- [DEBUG] Entering createProduct ---');
     try {
+        console.log('[DEBUG] Raw req.body:', JSON.stringify(req.body, null, 2));
+        console.log('[DEBUG] req.file exists:', !!req.file);
+        if(req.file) {
+            console.log('[DEBUG] req.file details:', req.file.originalname, req.file.path);
+        }
+
         // Parse stringified fields from FormData
+        console.log('[DEBUG] Parsing variants and shipping...');
         const variants = req.body.variants ? JSON.parse(req.body.variants) : [];
         const shipping = req.body.shipping ? JSON.parse(req.body.shipping) : [];
         const images = req.body.images ? JSON.parse(req.body.images) : [];
+        console.log('[DEBUG] Parsed variants count:', variants.length);
 
         // New logic: Calculate stock and price from variants
+        console.log('[DEBUG] Calculating totalStock and mainPrice...');
         const totalStock = variants.reduce((acc, variant) => acc + (parseInt(variant.stock, 10) || 0), 0);
         const mainPrice = variants.length > 0 ? parseFloat(variants[0].price) : 0;
+        console.log(`[DEBUG] Calculated totalStock: ${totalStock}, mainPrice: ${mainPrice}`);
 
-        const product = new Product({
+        const productDataForDb = {
             name: req.body.name,
             price: mainPrice,
             stock: totalStock,
@@ -64,11 +75,26 @@ const createProduct = async (req, res) => {
             sku: req.body.sku,
             shipping: shipping,
             video: req.body.video,
-        });
+        };
 
-        const createdProduct = await product.save();
+        console.log('[DEBUG] Final object for database:', JSON.stringify(productDataForDb, null, 2));
+
+        const product = new Product(productDataForDb);
+
+        let createdProduct;
+        try {
+            console.log('[DEBUG] Attempting to save product to database...');
+            createdProduct = await product.save();
+            console.log('[DEBUG] Product saved successfully!');
+        } catch (dbError) {
+            console.error('--- [DATABASE ERROR] --- ', dbError);
+            return res.status(500).json({ message: 'Database save failed', error: dbError.message });
+        }
+
         res.status(201).json(createdProduct);
+
     } catch (error) {
+        console.error('--- [GENERAL ERROR] --- ', error);
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
