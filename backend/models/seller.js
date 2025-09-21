@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
 const sellerSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  storeName: { type: String, required: true },
   province: { type: String, required: true },
   city: { type: String, required: true },
   district: { type: String, required: true },

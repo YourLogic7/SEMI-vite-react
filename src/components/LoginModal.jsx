@@ -26,7 +26,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onCred
         try {
             const response = await api.post('/api/users/login', formData);
             console.log('Login berhasil:', response.data);
-            onCredentialsSuccess(response.data.user); // Kirim seluruh objek user
+            onCredentialsSuccess(formData); // Pass formData (email and password)
             onClose();
         } catch (error) {
             console.error('Ada kesalahan saat login:', error);

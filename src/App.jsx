@@ -383,30 +383,35 @@ export default function App() {
         return true;
     };
 
-    const handleLoginSuccess = (email) => {
-        if (email.toLowerCase() === 'usersima') {
-            const simaUser = { id: 999, name: 'Sima User', email: 'usersima', role: 'customer', displayName: 'Sima User' };
-            dispatch({ type: 'SET_USER', payload: simaUser });
-            dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat datang kembali, Sima User!`, type: 'info', read: false } });
-            return;
-        }
-        const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-        if (foundUser) {
-            dispatch({ type: 'SET_USER', payload: foundUser });
-            dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat datang kembali, ${foundUser.name}!`, type: 'info', read: false } });
-        } else {
-            const guestUser = { id: Date.now(), name: email.split('@')[0], email, role: 'customer', displayName: email.split('@')[0] };
-            dispatch({ type: 'SET_USER', payload: guestUser });
-            dispatch({ type: 'ADD_USER', payload: guestUser });
-            dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat datang, ${guestUser.name}!`, type: 'info', read: false } });
+    const handleLoginSuccess = async (userCredentials) => {
+        try {
+            // Handle 'usersima' special case if still needed, but it won't get _id from DB
+            if (userCredentials.email.toLowerCase() === 'usersima') {
+                const simaUser = { _id: 'sima_id', name: 'Sima User', email: 'usersima', role: 'customer', displayName: 'Sima User' }; // Added _id
+                dispatch({ type: 'SET_USER', payload: simaUser });
+                dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat datang kembali, Sima User!`, type: 'info', read: false } });
+                return;
+            }
+
+            // Make API call to backend login endpoint
+            const response = await api.post('/api/users/login', { email: userCredentials.email, password: userCredentials.password });
+            const { user: loggedInUser } = response.data;
+
+            dispatch({ type: 'SET_USER', payload: loggedInUser });
+            dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat datang kembali, ${loggedInUser.name}!`, type: 'info', read: false } });
+
+        } catch (error) {
+            console.error("Gagal login:", error.response ? error.response.data : error.message);
+            openMessageModal(
+                'Login Gagal',
+                error.response?.data?.message || 'Terjadi kesalahan saat mencoba login. Silakan coba lagi.'
+            );
         }
     };
     
-    const handleCredentialsSuccess = (email) => {
+    const handleCredentialsSuccess = (userCredentials) => {
         dispatch({ type: 'CLOSE_MODAL', payload: { name: 'isLoginModalOpen' } });
-        // dispatch({ type: 'SET_PENDING_EMAIL', payload: email }); // No longer needed if OTP is disabled
-        // dispatch({ type: 'OPEN_MODAL', payload: { name: 'isOtpModalOpen' } }); // OTP disabled
-        handleLoginSuccess(email); // Directly log in
+        handleLoginSuccess(userCredentials); // Pass full userCredentials object
     };
 
     const handleOtpVerification = () => {
@@ -495,9 +500,35 @@ export default function App() {
         else if (role === 'affiliate') dispatch({ type: 'OPEN_MODAL', payload: { name: 'isAffiliateRegisterModalOpen' } });
     };
     
-    const handleRoleRegistrationSuccess = (role, data) => {
-        dispatch({ type: 'REGISTER_ROLE_SUCCESS', payload: { role, data } });
-        dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat! Anda sekarang adalah seorang ${role}.`, type: 'info', read: false } });
+    const handleRoleRegistrationSuccess = async (role, data) => {
+        try {
+            if (role === 'seller') {
+                if (!user || !user._id) {
+                    openMessageModal('Pendaftaran Gagal', 'Anda harus login untuk mendaftarkan toko.');
+                    return;
+                }
+                // Map data from StoreRegisterModal to sellerSchema
+                const storeData = {
+                    userId: user._id,
+                    storeName: data.storeName,
+                    province: data.province, // Assuming these are the IDs from the API
+                    city: data.regency, // Map regency to city
+                    district: data.district,
+                    bannerUrl: `https://placehold.co/1200x300/a16207/ffffff?text=${data.storeName.replace(/\s/g, '+')}` // Placeholder
+                };
+                const response = await api.post('/api/sellers/register-store', storeData);
+                console.log('Store registration successful:', response.data);
+                dispatch({ type: 'REGISTER_ROLE_SUCCESS', payload: { role, data: response.data.seller } });
+                openMessageModal('Pendaftaran Berhasil', 'Toko Anda berhasil didaftarkan!');
+            } else {
+                // For other roles, just update local state for now
+                dispatch({ type: 'REGISTER_ROLE_SUCCESS', payload: { role, data } });
+                dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat! Anda sekarang adalah seorang ${role}.`, type: 'info', read: false } });
+            }
+        } catch (error) {
+            console.error("Gagal mendaftarkan peran:", error.response?.data || error.message);
+            openMessageModal('Pendaftaran Gagal', error.response?.data?.message || 'Terjadi kesalahan saat mendaftarkan peran. Silakan coba lagi.');
+        }
     };
     
     const handleUpdateUserProfile = (updatedProfile) => {
@@ -505,19 +536,59 @@ export default function App() {
         openMessageModal('Profil Diperbarui', 'Profil Anda berhasil diperbarui.');
     };
 
-    const handleSellerSaveProduct = (productData) => {
-        if (productData.id && typeof productData.id === 'number') {
-            dispatch({ type: 'UPDATE_PRODUCT', payload: productData });
-            openMessageModal('Berhasil', 'Produk berhasil diperbarui.');
-        } else {
-            dispatch({ type: 'ADD_PRODUCT', payload: { ...productData, sellerId: user.id } });
-            openMessageModal('Berhasil', 'Produk baru berhasil ditambahkan.');
+    const handleSellerSaveProduct = async (productData) => {
+        try {
+            if (!user || !user._id) {
+                openMessageModal('Gagal Menyimpan Produk', 'Anda harus login untuk menambahkan/mengubah produk.');
+                return;
+            }
+
+            // Assuming user.role is 'seller' and user._id is the userId
+            // We need to find the sellerId from the sellers array using user._id
+            const currentSeller = sellers.find(s => s.userId === user._id);
+            if (!currentSeller) {
+                openMessageModal('Gagal Menyimpan Produk', 'Anda belum memiliki toko yang terdaftar.');
+                return;
+            }
+
+            const productPayload = {
+                name: productData.name,
+                price: parseFloat(productData.price),
+                stock: parseInt(productData.stock),
+                imageUrl: productData.imageUrl || `https://placehold.co/400x400/A9A9A9/ffffff?text=${productData.name.replace(/\s/g, '+')}`,
+                description: productData.description,
+                category: productData.category,
+                sellerId: currentSeller._id, // Link to the actual seller _id
+                // Add other fields from productData that are in productSchema if needed
+                // isFlashSale: productData.isFlashSale,
+                // discountPrice: productData.discountPrice,
+                // totalStock: productData.totalStock,
+            };
+
+            if (productData._id) { // Check if it's an existing product (has _id from DB)
+                const response = await api.put(`/api/products/${productData._id}`, productPayload);
+                dispatch({ type: 'UPDATE_PRODUCT', payload: response.data });
+                openMessageModal('Berhasil', 'Produk berhasil diperbarui.');
+            } else {
+                const response = await api.post('/api/products', productPayload);
+                dispatch({ type: 'ADD_PRODUCT', payload: response.data });
+                openMessageModal('Berhasil', 'Produk baru berhasil ditambahkan.');
+            }
+        } catch (error) {
+            console.error("Gagal menyimpan produk:", error.response?.data || error.message);
+            openMessageModal('Gagal Menyimpan Produk', error.response?.data?.message || 'Terjadi kesalahan saat menyimpan produk. Silakan coba lagi.');
         }
     };
 
-    const handleSellerDeleteProduct = (productId) => {
-        dispatch({ type: 'DELETE_PRODUCT', payload: productId });
-        openMessageModal('Berhasil', 'Produk berhasil dihapus.');
+    const handleSellerDeleteProduct = async (productId) => {
+        try {
+            await api.delete(`/api/products/${productId}`);
+            dispatch({ type: 'DELETE_PRODUCT', payload: productId });
+            openMessageModal('Berhasil', 'Produk berhasil dihapus.');
+        } catch (error) {
+            console.error("Gagal menghapus produk:", error.response?.data || error.message);
+            openMessageModal('Gagal Menghapus Produk', error.response?.data?.message || 'Terjadi kesalahan saat menghapus produk. Silakan coba lagi.');
+        }
     };
 
     const handleSellerUpdateOrder = (orderId, newStatus, resi) => {
