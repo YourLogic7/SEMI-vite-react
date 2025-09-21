@@ -22,20 +22,26 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
+    console.log('Register endpoint hit. Request body:', req.body);
     const { name, email, password, noHandphone } = req.body;
+
+    // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
+      console.log('User with email already exists:', email);
       return res.status(400).json({ message: 'Email sudah terdaftar.' });
     }
 
     const newUser = new User({ name, email, password, noHandphone, displayName: name });
     await newUser.save();
     
+    console.log('New user registered successfully:', newUser.email);
     const userResponse = newUser.toObject();
     delete userResponse.password;
 
     res.status(201).json({ message: 'Pendaftaran berhasil!', user: userResponse });
   } catch (error) {
+    console.error('Error in /register endpoint:', error.message);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
