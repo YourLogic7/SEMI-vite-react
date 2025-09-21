@@ -491,6 +491,7 @@ export default function SellerDashboard({ user, products, orders, onSaveProduct,
                 onSave={onSaveProduct}
                 productToEdit={editingProduct}
                 openMessageModal={openMessageModal}
+                user={user} // Pass user prop down to the modal
             />
 
             <ProcessOrderModal 

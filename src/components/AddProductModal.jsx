@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, X } from 'lucide-react';
 import api from '../api';
 
-export default function AddProductModal({ isOpen, onClose, onSave, productToEdit, openMessageModal }) {
+export default function AddProductModal({ isOpen, onClose, onSave, productToEdit, openMessageModal, user }) {
     // REMOVED hpp, price, and stock from initial state
     const initialProductState = {
         name: '',
@@ -108,6 +108,16 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         setIsSubmitting(true);
 
         const formData = new FormData();
+
+        // Add sellerId from the user prop
+        if (user?._id) {
+            formData.append('sellerId', user._id);
+        } else if (!productToEdit) {
+            // If it's a new product and we have no user ID, we cannot proceed.
+            openMessageModal('Error', 'Tidak dapat menemukan ID penjual. Silakan coba login kembali.');
+            setIsSubmitting(false);
+            return;
+        }
 
         Object.keys(productData).forEach(key => {
             if (key !== 'images' && key !== 'video' && productData[key] !== null) {
