@@ -7,12 +7,12 @@ export default function PaymentModal({ isOpen, onClose, totalAmount, onFinalizeO
     const handlePayment = async (method) => {
         try {
             const order_id = `ORDER-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            const gross_amount = totalAmount;
+            const gross_amount = Math.round(totalAmount); // Ensure gross_amount is an integer
 
             const item_details = cartItems.map(item => ({
                 id: item.id,
                 name: item.name,
-                price: item.price,
+                price: Math.round(item.price), // Ensure item price is an integer
                 quantity: item.quantity,
             }));
 

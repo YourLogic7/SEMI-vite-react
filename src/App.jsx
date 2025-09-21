@@ -164,17 +164,9 @@ const appReducer = (state, action) => {
                 products: state.products.map(p => p.id === action.payload.id ? action.payload : p),
             };
         case 'ADD_PRODUCT':
-            const newProduct = {
-                ...action.payload,
-                id: Date.now(),
-                sellerId: state.user.id,
-                sold: 0,
-                reviews: [],
-                imageUrl: `https://placehold.co/400x400/A9A9A9/ffffff?text=${action.payload.name.replace(/\s/g, '+')}`
-            };
             return {
                 ...state,
-                products: [...state.products, newProduct],
+                products: [...state.products, action.payload],
             };
         case 'DELETE_PRODUCT':
             return { ...state, products: state.products.filter(p => p.id !== action.payload) };
