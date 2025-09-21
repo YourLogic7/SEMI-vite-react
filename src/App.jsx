@@ -113,22 +113,16 @@ const appReducer = (state, action) => {
         }
         case 'REGISTER_ROLE_SUCCESS': {
             const { role, data } = action.payload;
-            const displayName = data.storeName || data.resellerName || data.affiliateName || state.user.name || "Pengguna Baru";
-            const updatedUser = { ...state.user, role: role, name: displayName, displayName: displayName };
+            const updatedUser = { ...state.user, role: role, displayName: data.storeName || state.user.name };
             
             let newSellers = [...state.sellers];
-            if (role === 'seller' && state.user) {
-                const newSeller = {
-                    id: state.user.id,
-                    name: data.storeName,
-                    location: data.location,
-                    bannerUrl: `https://placehold.co/1200x300/a16207/ffffff?text=${data.storeName.replace(/\s/g, '+')}`
-                };
-                newSellers = [...newSellers, newSeller];
+            if (role === 'seller' && data) {
+                // data here is the seller object returned from the backend
+                newSellers = [...newSellers, data];
             }
             
-            const updatedUsers = state.users.map(u => u.id === state.user.id ? updatedUser : u);
-            if (!updatedUsers.some(u => u.id === updatedUser.id)) {
+            const updatedUsers = state.users.map(u => u._id === state.user._id ? updatedUser : u);
+            if (!updatedUsers.some(u => u._id === updatedUser._id)) {
                  updatedUsers.push(updatedUser);
             }
 
@@ -429,6 +423,7 @@ export default function App() {
             dispatch({ type: 'SET_USER', payload: newUser });
             dispatch({ type: 'ADD_USER', payload: newUser });
             dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now(), text: `Selamat bergabung, ${name}! Akun Anda berhasil dibuat.`, type: 'info', read: false } });
+            openMessageModal('Pendaftaran Berhasil', `Selamat datang, ${name}! Akun Anda berhasil dibuat.`); // Added success modal
             
         } catch (error) {
             console.error("App.jsx handleRegister error:", error.response ? error.response.data : error.message);
