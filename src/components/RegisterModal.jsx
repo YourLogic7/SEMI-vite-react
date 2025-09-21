@@ -33,16 +33,9 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
             setError("Password harus minimal 6 karakter.");
             return;
         }
-        try {
-            const response = await api.post('/api/users/register', formData);
-            console.log('Pendaftaran berhasil:', response.data);
-            alert('Pendaftaran berhasil!');
-            onRegister(formData.name, formData.noHandphone, formData.email, formData.password);
-            onClose();
-        } catch (error) {
-            console.error('Ada kesalahan saat mendaftar:', error);
-            setError(error.response?.data?.error || error.response?.data?.message || 'Gagal mendaftar. Silakan coba lagi.');
-        }
+        // Simply pass the data to the onRegister prop, which is handleRegister in App.jsx
+        onRegister(formData.name, formData.noHandphone, formData.email, formData.password);
+        onClose(); // Close the modal after passing the data
     };
 
     return (
