@@ -1,5 +1,45 @@
 import React, { useState, useEffect } from 'react';
 
+const renderStoreButton = (user, handleNavigate, onOpenStoreClick) => {
+    if (!user) {
+        // If no user is logged in, show "Mulai Berjualan" to prompt login/registration
+        return (
+            <a href="#" onClick={(e) => { e.preventDefault(); onOpenStoreClick(); }} className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors">
+                Mulai Berjualan
+            </a>
+        );
+    }
+
+    switch (user.role) {
+        case 'seller':
+            return (
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('sellerDashboard'); }} className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-600 rounded-lg hover:bg-teal-50 transition-colors">
+                    Toko Anda
+                </a>
+            );
+        case 'reseller':
+            return (
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('resellerDashboard'); }} className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-600 rounded-lg hover:bg-teal-50 transition-colors">
+                    Reseller Anda
+                </a>
+            );
+        case 'affiliate':
+            return (
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('affiliateDashboard'); }} className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-600 rounded-lg hover:bg-teal-50 transition-colors">
+                    Affiliate Anda
+                </a>
+            );
+        case 'customer':
+        default:
+            // If user is a customer or has no specific role, show "Mulai Berjualan"
+            return (
+                <a href="#" onClick={(e) => { e.preventDefault(); onOpenStoreClick(); }} className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors">
+                    Mulai Berjualan
+                </a>
+            );
+    }
+};
+
 // Komponen untuk bagian atas (header) halaman web (dengan notifikasi fungsional)
 export default function Header({ user, onLoginClick, onRegisterClick, onLogoutClick, onTrackOrderClick, onCartClick, cartItemCount, onNavigate, searchQuery, onSearchSubmit, onOpenStoreClick, notifications, setNotifications }) {
     const [isNotifOpen, setNotifOpen] = useState(false);
@@ -105,9 +145,7 @@ export default function Header({ user, onLoginClick, onRegisterClick, onLogoutCl
                                 </>
                             )}
                         </div>
-                        <a href="#" onClick={(e) => { e.preventDefault(); onOpenStoreClick(); }} className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors">
-                            Mulai Berjualan
-                        </a>
+                        {renderStoreButton(user, handleNavigate, onOpenStoreClick)}
                     </div>
                 </div>
             </div>
