@@ -65,7 +65,6 @@ const createProduct = async (req, res) => {
             category: req.body.category,
             description: req.body.description,
             weight: parseFloat(req.body.weight),
-            volume: req.body.volume,
             variants: variants,
             minPurchase: parseInt(req.body.minPurchase, 10),
             preorder: req.body.preorder,
@@ -116,8 +115,6 @@ const updateProduct = async (req, res) => {
             product.description = req.body.description ?? product.description;
             product.brand = req.body.brand ?? product.brand;
             product.category = req.body.category ?? product.category;
-            // product.expired is handled below
-            product.volume = req.body.volume ?? product.volume;
             product.preorder = req.body.preorder ?? product.preorder;
             product.insurance = req.body.insurance ?? product.insurance;
             product.condition = req.body.condition ?? product.condition;
@@ -146,12 +143,6 @@ const updateProduct = async (req, res) => {
                 product.imageUrl = req.body.imageUrl;
             }
 
-            // Conditionally set expired date
-            if (req.body.expired) {
-                product.expired = req.body.expired;
-            } else if (req.body.expired === '') {
-                product.expired = null; // Explicitly set to null if cleared
-            }
 
             const updatedProduct = await product.save();
             res.json(updatedProduct);

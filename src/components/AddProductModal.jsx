@@ -3,15 +3,13 @@ import { PlusCircle, X } from 'lucide-react';
 import api from '../api';
 
 export default function AddProductModal({ isOpen, onClose, onSave, productToEdit, openMessageModal, user }) {
-    // REMOVED hpp, price, and stock from initial state
+    // REMOVED expired and volume from initial state
     const initialProductState = {
         name: '',
         category: 'Makanan & Minuman',
         description: '',
         brand: '',
-        expired: '',
         weight: '',
-        volume: '',
         variants: [{ name: '', stock: '', price: '' }],
         minPurchase: 1,
         preorder: 'Tidak',
@@ -109,11 +107,9 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
 
         const formData = new FormData();
 
-        // Add sellerId from the user prop
         if (user?._id) {
             formData.append('sellerId', user._id);
         } else if (!productToEdit) {
-            // If it's a new product and we have no user ID, we cannot proceed.
             openMessageModal('Error', 'Tidak dapat menemukan ID penjual. Silakan coba login kembali.');
             setIsSubmitting(false);
             return;
@@ -183,16 +179,16 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 <label className="font-semibold text-sm">3. Deskripsi Produk</label>
                                 <textarea name="description" value={productData.description} onChange={handleChange} rows="4" className="w-full p-2 border rounded-md mt-1"></textarea>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><label className="font-semibold text-sm">4. Merek</label><input name="brand" value={productData.brand} onChange={handleChange} type="text" className="w-full p-2 border rounded-md mt-1" /></div>
-                                <div><label className="font-semibold text-sm">5. Expired</label><input name="expired" value={productData.expired} onChange={handleChange} type="date" className="w-full p-2 border rounded-md mt-1" /></div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><label className="font-semibold text-sm">6. Berat (gram)</label><input name="weight" value={productData.weight} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" /></div>
-                                <div><label className="font-semibold text-sm">7. Volume (cm³)</label><input name="volume" value={productData.volume} onChange={handleChange} type="text" placeholder="P x L x T" className="w-full p-2 border rounded-md mt-1" /></div>
+                            <div>
+                                <label className="font-semibold text-sm">4. Merek</label>
+                                <input name="brand" value={productData.brand} onChange={handleChange} type="text" className="w-full p-2 border rounded-md mt-1" />
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">8. Varian (Harga dan Stok diatur di sini)</label>
+                                <label className="font-semibold text-sm">5. Berat (gram)</label>
+                                <input name="weight" value={productData.weight} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" />
+                            </div>
+                            <div>
+                                <label className="font-semibold text-sm">6. Varian (Harga dan Stok diatur di sini)</label>
                                 {productData.variants.map((variant, index) => (
                                     <div key={index} className="flex items-center gap-2 mt-1">
                                         <input name="name" value={variant.name} onChange={(e) => handleVariantChange(index, e)} type="text" placeholder="Nama Varian" className="w-1/3 p-2 border rounded-md" required />
@@ -203,9 +199,8 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 ))}
                                 <button type="button" onClick={addVariant} className="text-sm text-teal-600 font-semibold mt-2 flex items-center gap-1"><PlusCircle size={16} /> Tambah Varian</button>
                             </div>
-                            {/* REMOVED HPP, PRICE, AND STOCK FIELDS */}
                             <div>
-                                <label className="font-semibold text-sm">9. Min. Pembelian</label>
+                                <label className="font-semibold text-sm">7. Min. Pembelian</label>
                                 <input name="minPurchase" value={productData.minPurchase} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" required />
                             </div>
                         </div>
@@ -213,23 +208,23 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="font-semibold text-sm">10. Preorder</label>
+                                    <label className="font-semibold text-sm">8. Preorder</label>
                                     <div className="flex gap-4 mt-1"><label><input type="radio" name="preorder" value="Ya" checked={productData.preorder === 'Ya'} onChange={handleChange} /> Ya</label><label><input type="radio" name="preorder" value="Tidak" checked={productData.preorder === 'Tidak'} onChange={handleChange} /> Tidak</label></div>
                                 </div>
                                 <div>
-                                    <label className="font-semibold text-sm">11. Asuransi</label>
+                                    <label className="font-semibold text-sm">9. Asuransi</label>
                                     <div className="flex gap-4 mt-1"><label><input type="radio" name="insurance" value="Ya" checked={productData.insurance === 'Ya'} onChange={handleChange} /> Aktifkan</label><label><input type="radio" name="insurance" value="Tidak" checked={productData.insurance === 'Tidak'} onChange={handleChange} /> Tidak</label></div>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="font-semibold text-sm">12. Kondisi</label>
+                                    <label className="font-semibold text-sm">10. Kondisi</label>
                                     <div className="flex gap-4 mt-1"><label><input type="radio" name="condition" value="Baru" checked={productData.condition === 'Baru'} onChange={handleChange} /> Baru</label><label><input type="radio" name="condition" value="Bekas" checked={productData.condition === 'Bekas'} onChange={handleChange} /> Bekas</label></div>
                                 </div>
-                                <div><label className="font-semibold text-sm">13. SKU Induk</label><input name="sku" value={productData.sku} onChange={handleChange} type="text" className="w-full p-2 border rounded-md mt-1" /></div>
+                                <div><label className="font-semibold text-sm">11. SKU Induk</label><input name="sku" value={productData.sku} onChange={handleChange} type="text" className="w-full p-2 border rounded-md mt-1" /></div>
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">14. Aktifkan Ekspedisi</label>
+                                <label className="font-semibold text-sm">12. Aktifkan Ekspedisi</label>
                                 <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
                                     <label><input type="checkbox" name="Hemat" checked={productData.shipping.includes('Hemat')} onChange={handleChange} /> Hemat</label>
                                     <label><input type="checkbox" name="Regular" checked={productData.shipping.includes('Regular')} onChange={handleChange} /> Regular</label>
@@ -239,7 +234,7 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 </div>
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">15. Upload Foto (Rasio 1:1, maks 2MB)</label>
+                                <label className="font-semibold text-sm">13. Upload Foto (Rasio 1:1, maks 2MB)</label>
                                 {productData.images.map((img, index) => (
                                     <div key={index} className="flex items-center gap-2 mt-1">
                                         <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, index)} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100" />
@@ -249,7 +244,7 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 <button type="button" onClick={addImageInput} className="text-sm text-teal-600 font-semibold mt-2 flex items-center gap-1"><PlusCircle size={16} /> Tambah Foto</button>
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">16. Upload Video (Maks 30MB, 1280x1280px, 30 detik, MP4)</label>
+                                <label className="font-semibold text-sm">14. Upload Video (Maks 30MB, 1280x1280px, 30 detik, MP4)</label>
                                 <input name="video" type="file" accept="video/mp4" onChange={handleVideoFileChange} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100 mt-1" />
                             </div>
                         </div>

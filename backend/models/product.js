@@ -21,7 +21,7 @@ const productSchema = new mongoose.Schema({
   discountPrice: { type: Number },
   totalStock: { type: Number },
   brand: { type: String },
-  expired: { type: Date },
+
   weight: { type: Number },
   volume: { type: String },
   variants: { type: [{ name: String, stock: Number, price: Number }], default: [] },
