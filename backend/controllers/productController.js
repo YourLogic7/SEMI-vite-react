@@ -64,7 +64,6 @@ const createProduct = async (req, res) => {
             brand: req.body.brand,
             category: req.body.category,
             description: req.body.description,
-            expired: req.body.expired,
             weight: parseFloat(req.body.weight),
             volume: req.body.volume,
             variants: variants,
@@ -76,6 +75,11 @@ const createProduct = async (req, res) => {
             shipping: shipping,
             video: req.body.video,
         };
+
+        // Conditionally add expired date to avoid CastError on empty string
+        if (req.body.expired) {
+            productDataForDb.expired = req.body.expired;
+        }
 
         console.log('[DEBUG] Final object for database:', JSON.stringify(productDataForDb, null, 2));
 
@@ -112,7 +116,7 @@ const updateProduct = async (req, res) => {
             product.description = req.body.description ?? product.description;
             product.brand = req.body.brand ?? product.brand;
             product.category = req.body.category ?? product.category;
-            product.expired = req.body.expired ?? product.expired;
+            // product.expired is handled below
             product.volume = req.body.volume ?? product.volume;
             product.preorder = req.body.preorder ?? product.preorder;
             product.insurance = req.body.insurance ?? product.insurance;
@@ -140,6 +144,13 @@ const updateProduct = async (req, res) => {
                 product.imageUrl = `/${req.file.path.replace(/\\/g, '/')}`;
             } else if (req.body.imageUrl) {
                 product.imageUrl = req.body.imageUrl;
+            }
+
+            // Conditionally set expired date
+            if (req.body.expired) {
+                product.expired = req.body.expired;
+            } else if (req.body.expired === '') {
+                product.expired = null; // Explicitly set to null if cleared
             }
 
             const updatedProduct = await product.save();
