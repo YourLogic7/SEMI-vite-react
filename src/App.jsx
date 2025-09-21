@@ -735,6 +735,11 @@ export default function App() {
         return renderPage();
     }
     
+    const isDashboardView = useMemo(() => {
+        const dashboardPages = ['sellerDashboard', 'resellerDashboard', 'affiliateDashboard', 'superAdminDashboard'];
+        return dashboardPages.includes(currentView.page);
+    }, [currentView.page]);
+
     return (
         <div className="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
             <Header 
@@ -757,7 +762,7 @@ export default function App() {
                 {renderPage()}
             </main>
             
-            {!isSuperAdmin && (
+            {!isSuperAdmin && !isDashboardView && (
                 <>
                     <Footer onNavigate={(page, data) => dispatch({ type: 'NAVIGATE', payload: { page, data } })} />
                     <LiveChatWidget />
