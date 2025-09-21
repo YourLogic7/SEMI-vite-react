@@ -8,8 +8,8 @@ const reviewSchema = new mongoose.Schema({
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  price: { type: Number, required: true },
-  stock: { type: Number, required: true, default: 0 },
+  price: { type: Number },
+  stock: { type: Number, default: 0 },
   imageUrl: { type: String },
   images: { type: [String], default: [] },
   sold: { type: Number, default: 0 },
@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema({
   weight: { type: Number },
   volume: { type: String },
   variants: { type: [{ name: String, stock: Number, price: Number }], default: [] },
-  hpp: { type: Number },
+
   minPurchase: { type: Number, default: 1 },
   preorder: { type: String, default: 'Tidak' },
   insurance: { type: String, default: 'Tidak' },

@@ -39,21 +39,24 @@ const createProduct = async (req, res) => {
         const shipping = req.body.shipping ? JSON.parse(req.body.shipping) : [];
         const images = req.body.images ? JSON.parse(req.body.images) : [];
 
+        // New logic: Calculate stock and price from variants
+        const totalStock = variants.reduce((acc, variant) => acc + (parseInt(variant.stock, 10) || 0), 0);
+        const mainPrice = variants.length > 0 ? parseFloat(variants[0].price) : 0;
+
         const product = new Product({
             name: req.body.name,
-            price: parseFloat(req.body.price),
+            price: mainPrice,
+            stock: totalStock,
             sellerId: req.body.sellerId,
             imageUrl: req.file ? `/${req.file.path.replace(/\\/g, '/')}` : '',
             images: images,
             brand: req.body.brand,
             category: req.body.category,
             description: req.body.description,
-            stock: parseInt(req.body.stock, 10),
             expired: req.body.expired,
             weight: parseFloat(req.body.weight),
             volume: req.body.volume,
             variants: variants,
-            hpp: parseFloat(req.body.hpp),
             minPurchase: parseInt(req.body.minPurchase, 10),
             preorder: req.body.preorder,
             insurance: req.body.insurance,
@@ -78,7 +81,7 @@ const updateProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
 
         if (product) {
-            // Update fields, using ?? to keep old value if new one is null/undefined
+            // Update non-numeric, non-JSON fields
             product.name = req.body.name ?? product.name;
             product.description = req.body.description ?? product.description;
             product.brand = req.body.brand ?? product.brand;
@@ -91,15 +94,18 @@ const updateProduct = async (req, res) => {
             product.sku = req.body.sku ?? product.sku;
             product.video = req.body.video ?? product.video;
 
-            // Convert numeric fields
-            if (req.body.price !== undefined) product.price = parseFloat(req.body.price);
-            if (req.body.stock !== undefined) product.stock = parseInt(req.body.stock, 10);
+            // Convert numeric fields that are not calculated from variants
             if (req.body.weight !== undefined) product.weight = parseFloat(req.body.weight);
-            if (req.body.hpp !== undefined) product.hpp = parseFloat(req.body.hpp);
             if (req.body.minPurchase !== undefined) product.minPurchase = parseInt(req.body.minPurchase, 10);
 
             // Handle stringified JSON fields
-            if (req.body.variants) product.variants = JSON.parse(req.body.variants);
+            if (req.body.variants) {
+                const variants = JSON.parse(req.body.variants);
+                product.variants = variants;
+                // Recalculate stock and price based on new variants
+                product.stock = variants.reduce((acc, variant) => acc + (parseInt(variant.stock, 10) || 0), 0);
+                product.price = variants.length > 0 ? parseFloat(variants[0].price) : 0;
+            }
             if (req.body.shipping) product.shipping = JSON.parse(req.body.shipping);
             if (req.body.images) product.images = JSON.parse(req.body.images);
 

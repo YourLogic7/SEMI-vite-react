@@ -3,6 +3,7 @@ import { PlusCircle, X } from 'lucide-react';
 import api from '../api';
 
 export default function AddProductModal({ isOpen, onClose, onSave, productToEdit, openMessageModal }) {
+    // REMOVED hpp, price, and stock from initial state
     const initialProductState = {
         name: '',
         category: 'Makanan & Minuman',
@@ -12,17 +13,13 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         weight: '',
         volume: '',
         variants: [{ name: '', stock: '', price: '' }],
-        hpp: '',
-        price: '',
-        stock: '',
         minPurchase: 1,
         preorder: 'Tidak',
         insurance: 'Tidak',
         condition: 'Baru',
         sku: '',
         shipping: [],
-        // State will now hold File objects instead of URLs
-        images: [null], 
+        images: [null],
         video: null,
     };
 
@@ -31,10 +28,8 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
 
     useEffect(() => {
         if (isOpen) {
-            // For editing, we assume image URLs are passed in and we don't allow changing them in this modal for now.
-            // For a new product, we reset to the initial state.
-            const state = productToEdit 
-                ? { ...initialProductState, ...productToEdit, images: productToEdit.images || [null] } 
+            const state = productToEdit
+                ? { ...initialProductState, ...productToEdit, images: productToEdit.images || [null] }
                 : initialProductState;
             setProductData(state);
         }
@@ -61,19 +56,18 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         newVariants[index][e.target.name] = e.target.value;
         setProductData(prev => ({ ...prev, variants: newVariants }));
     };
-    
-    // This function now just stores the selected file in the state
+
     const handleFileChange = (e, index) => {
         const file = e.target.files[0];
         if (!file) return;
         const newImages = [...productData.images];
-        newImages[index] = file; // Store the File object
+        newImages[index] = file;
         setProductData(prev => ({ ...prev, images: newImages }));
     };
-    
+
     const handleVideoFileChange = (e) => {
         const file = e.target.files[0];
-        if(file) {
+        if (file) {
             setProductData(prev => ({ ...prev, video: file }));
         }
     };
@@ -85,7 +79,7 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
             openMessageModal('Batas Tercapai', 'Anda hanya dapat menambahkan maksimal 10 varian.');
         }
     };
-    
+
     const removeVariant = (index) => {
         if (productData.variants.length > 1) {
             const newVariants = productData.variants.filter((_, i) => i !== index);
@@ -100,7 +94,7 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
             openMessageModal('Batas Tercapai', 'Anda hanya dapat mengunggah maksimal 8 foto.');
         }
     };
-    
+
     const removeImageInput = (index) => {
         if (productData.images.length > 1) {
             const newImages = productData.images.filter((_, i) => i !== index);
@@ -114,11 +108,9 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         setIsSubmitting(true);
 
         const formData = new FormData();
-        
-        // Append all text/data fields
+
         Object.keys(productData).forEach(key => {
             if (key !== 'images' && key !== 'video' && productData[key] !== null) {
-                // Stringify arrays/objects so they can be parsed on the backend
                 if (Array.isArray(productData[key]) || typeof productData[key] === 'object') {
                     formData.append(key, JSON.stringify(productData[key]));
                 } else {
@@ -127,35 +119,25 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
             }
         });
 
-        // Find the first valid image file and append it.
-        // The backend route currently only supports one image named 'productImage'.
         const mainImageFile = productData.images.find(img => img instanceof File);
         if (mainImageFile) {
             formData.append('productImage', mainImageFile);
-        } else if (!productToEdit) {
-            // For new products, an image is required by the backend model
-            openMessageModal('Validasi Gagal', 'Anda harus mengunggah setidaknya satu gambar utama.');
-            setIsSubmitting(false);
-            return;
         }
-        
-        // Append video file if it exists
+
         if (productData.video instanceof File) {
-            // Assuming backend handles a 'video' field
             formData.append('video', productData.video);
         }
 
         try {
             let response;
-            // If we are editing, we use PUT, otherwise POST
             if (productToEdit?._id) {
                 response = await api.put(`/api/products/${productToEdit._id}`, formData);
             } else {
                 response = await api.post('/api/products', formData);
             }
-            
+
             openMessageModal('Berhasil', `Produk berhasil ${productToEdit ? 'diperbarui' : 'disimpan'}.`);
-            onSave(response.data); // Pass the saved product data to the parent
+            onSave(response.data);
             onClose();
 
         } catch (error) {
@@ -174,7 +156,6 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                     <button onClick={onClose} className="text-2xl font-light leading-none p-1">&times;</button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
-                    {/* The form layout remains the same */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         {/* Kolom Kiri */}
                         <div className="space-y-4">
@@ -196,65 +177,61 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 <div><label className="font-semibold text-sm">4. Merek</label><input name="brand" value={productData.brand} onChange={handleChange} type="text" className="w-full p-2 border rounded-md mt-1" /></div>
                                 <div><label className="font-semibold text-sm">5. Expired</label><input name="expired" value={productData.expired} onChange={handleChange} type="date" className="w-full p-2 border rounded-md mt-1" /></div>
                             </div>
-                             <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div><label className="font-semibold text-sm">6. Berat (gram)</label><input name="weight" value={productData.weight} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" /></div>
                                 <div><label className="font-semibold text-sm">7. Volume (cm³)</label><input name="volume" value={productData.volume} onChange={handleChange} type="text" placeholder="P x L x T" className="w-full p-2 border rounded-md mt-1" /></div>
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">8. Varian</label>
+                                <label className="font-semibold text-sm">8. Varian (Harga dan Stok diatur di sini)</label>
                                 {productData.variants.map((variant, index) => (
                                     <div key={index} className="flex items-center gap-2 mt-1">
-                                        <input name="name" value={variant.name} onChange={(e) => handleVariantChange(index, e)} type="text" placeholder="Nama Varian" className="w-1/3 p-2 border rounded-md" />
-                                        <input name="stock" value={variant.stock} onChange={(e) => handleVariantChange(index, e)} type="number" placeholder="Stok" className="w-1/3 p-2 border rounded-md" />
-                                        <input name="price" value={variant.price} onChange={(e) => handleVariantChange(index, e)} type="number" placeholder="Harga" className="w-1/3 p-2 border rounded-md" />
+                                        <input name="name" value={variant.name} onChange={(e) => handleVariantChange(index, e)} type="text" placeholder="Nama Varian" className="w-1/3 p-2 border rounded-md" required />
+                                        <input name="stock" value={variant.stock} onChange={(e) => handleVariantChange(index, e)} type="number" placeholder="Stok" className="w-1/3 p-2 border rounded-md" required />
+                                        <input name="price" value={variant.price} onChange={(e) => handleVariantChange(index, e)} type="number" placeholder="Harga" className="w-1/3 p-2 border rounded-md" required />
                                         {productData.variants.length > 1 && <button type="button" onClick={() => removeVariant(index)}><X size={18} className="text-red-500" /></button>}
                                     </div>
                                 ))}
                                 <button type="button" onClick={addVariant} className="text-sm text-teal-600 font-semibold mt-2 flex items-center gap-1"><PlusCircle size={16} /> Tambah Varian</button>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><label className="font-semibold text-sm">9. Harga HPP</label><input name="hpp" value={productData.hpp} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" /></div>
-                                <div><label className="font-semibold text-sm">10. Harga Jual</label><input name="price" value={productData.price} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" required /></div>
-                            </div>
-                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className="font-semibold text-sm">11. Stok</label><input name="stock" value={productData.stock} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" required /></div>
-                                <div><label className="font-semibold text-sm">12. Min. Pembelian</label><input name="minPurchase" value={productData.minPurchase} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" required /></div>
+                            {/* REMOVED HPP, PRICE, AND STOCK FIELDS */}
+                            <div>
+                                <label className="font-semibold text-sm">9. Min. Pembelian</label>
+                                <input name="minPurchase" value={productData.minPurchase} onChange={handleChange} type="number" className="w-full p-2 border rounded-md mt-1" required />
                             </div>
                         </div>
                         {/* Kolom Kanan */}
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="font-semibold text-sm">13. Preorder</label>
+                                    <label className="font-semibold text-sm">10. Preorder</label>
                                     <div className="flex gap-4 mt-1"><label><input type="radio" name="preorder" value="Ya" checked={productData.preorder === 'Ya'} onChange={handleChange} /> Ya</label><label><input type="radio" name="preorder" value="Tidak" checked={productData.preorder === 'Tidak'} onChange={handleChange} /> Tidak</label></div>
                                 </div>
                                 <div>
-                                    <label className="font-semibold text-sm">14. Asuransi</label>
+                                    <label className="font-semibold text-sm">11. Asuransi</label>
                                     <div className="flex gap-4 mt-1"><label><input type="radio" name="insurance" value="Ya" checked={productData.insurance === 'Ya'} onChange={handleChange} /> Aktifkan</label><label><input type="radio" name="insurance" value="Tidak" checked={productData.insurance === 'Tidak'} onChange={handleChange} /> Tidak</label></div>
                                 </div>
                             </div>
-                             <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="font-semibold text-sm">15. Kondisi</label>
+                                    <label className="font-semibold text-sm">12. Kondisi</label>
                                     <div className="flex gap-4 mt-1"><label><input type="radio" name="condition" value="Baru" checked={productData.condition === 'Baru'} onChange={handleChange} /> Baru</label><label><input type="radio" name="condition" value="Bekas" checked={productData.condition === 'Bekas'} onChange={handleChange} /> Bekas</label></div>
                                 </div>
-                                <div><label className="font-semibold text-sm">16. SKU Induk</label><input name="sku" value={productData.sku} onChange={handleChange} type="text" className="w-full p-2 border rounded-md mt-1" /></div>
+                                <div><label className="font-semibold text-sm">13. SKU Induk</label><input name="sku" value={productData.sku} onChange={handleChange} type="text" className="w-full p-2 border rounded-md mt-1" /></div>
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">17. Aktifkan Ekspedisi</label>
+                                <label className="font-semibold text-sm">14. Aktifkan Ekspedisi</label>
                                 <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
                                     <label><input type="checkbox" name="Hemat" checked={productData.shipping.includes('Hemat')} onChange={handleChange} /> Hemat</label>
-                                    <label><input type="checkbox"name="Regular" checked={productData.shipping.includes('Regular')} onChange={handleChange} /> Regular</label>
+                                    <label><input type="checkbox" name="Regular" checked={productData.shipping.includes('Regular')} onChange={handleChange} /> Regular</label>
                                     <label><input type="checkbox" name="Kilat" checked={productData.shipping.includes('Kilat')} onChange={handleChange} /> Kilat</label>
                                     <label><input type="checkbox" name="Sameday" checked={productData.shipping.includes('Sameday')} onChange={handleChange} /> Sameday</label>
                                     <label><input type="checkbox" name="Instant" checked={productData.shipping.includes('Instant')} onChange={handleChange} /> Instant</label>
                                 </div>
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">18. Upload Foto (Rasio 1:1, maks 2MB)</label>
+                                <label className="font-semibold text-sm">15. Upload Foto (Rasio 1:1, maks 2MB)</label>
                                 {productData.images.map((img, index) => (
                                     <div key={index} className="flex items-center gap-2 mt-1">
-                                        {/* The onChange handler is now handleFileChange */}
                                         <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, index)} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100" />
                                         {productData.images.length > 1 && <button type="button" onClick={() => removeImageInput(index)}><X size={18} className="text-red-500" /></button>}
                                     </div>
@@ -262,8 +239,8 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 <button type="button" onClick={addImageInput} className="text-sm text-teal-600 font-semibold mt-2 flex items-center gap-1"><PlusCircle size={16} /> Tambah Foto</button>
                             </div>
                             <div>
-                                <label className="font-semibold text-sm">19. Upload Video (Maks 30MB, 1280x1280px, 30 detik, MP4)</label>
-                                <input name="video" type="file" accept="video/mp4" onChange={handleVideoFileChange} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100 mt-1"/>
+                                <label className="font-semibold text-sm">16. Upload Video (Maks 30MB, 1280x1280px, 30 detik, MP4)</label>
+                                <input name="video" type="file" accept="video/mp4" onChange={handleVideoFileChange} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100 mt-1" />
                             </div>
                         </div>
                     </div>
