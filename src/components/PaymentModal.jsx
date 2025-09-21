@@ -7,19 +7,32 @@ export default function PaymentModal({ isOpen, onClose, totalAmount, onFinalizeO
     const handlePayment = async (method) => {
         try {
             const order_id = `ORDER-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            const gross_amount = Math.round(totalAmount); // Ensure gross_amount is an integer
+            const gross_amount = Math.round(totalAmount);
 
             const item_details = cartItems.map(item => ({
                 id: item.id,
                 name: item.name,
-                price: Math.round(item.price), // Ensure item price is an integer
+                price: Math.round(item.price),
                 quantity: item.quantity,
             }));
+
+            // Calculate subtotal from items and find the difference for shipping/other fees
+            const subtotal = item_details.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            const otherFees = gross_amount - subtotal;
+
+            if (otherFees > 0) {
+                item_details.push({
+                    id: 'SHIPPING_FEE',
+                    name: 'Biaya Pengiriman & Lainnya',
+                    price: otherFees,
+                    quantity: 1,
+                });
+            }
 
             const customer_details = {
                 first_name: user.name,
                 email: user.email,
-                phone: user.noHandphone || '081234567890', // Use user's phone or a default
+                phone: user.noHandphone || '081234567890',
             };
 
             const response = await api.post('/api/midtrans/create-transaction', {

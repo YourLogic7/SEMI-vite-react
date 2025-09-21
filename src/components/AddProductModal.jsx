@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, X } from 'lucide-react';
-import api from '../api'; // Import api
+import api from '../api';
 
-// Komponen modal untuk menambah atau mengubah produk dengan fitur lengkap
 export default function AddProductModal({ isOpen, onClose, onSave, productToEdit, openMessageModal }) {
     const initialProductState = {
         name: '',
@@ -22,16 +21,22 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         condition: 'Baru',
         sku: '',
         shipping: [],
-        images: [null],
+        // State will now hold File objects instead of URLs
+        images: [null], 
         video: null,
     };
 
     const [productData, setProductData] = useState(initialProductState);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            // Jika ada productToEdit, isi form dengan datanya, jika tidak, gunakan state awal
-            setProductData(productToEdit ? { ...initialProductState, ...productToEdit } : initialProductState);
+            // For editing, we assume image URLs are passed in and we don't allow changing them in this modal for now.
+            // For a new product, we reset to the initial state.
+            const state = productToEdit 
+                ? { ...initialProductState, ...productToEdit, images: productToEdit.images || [null] } 
+                : initialProductState;
+            setProductData(state);
         }
     }, [productToEdit, isOpen]);
 
@@ -55,6 +60,22 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         const newVariants = [...productData.variants];
         newVariants[index][e.target.name] = e.target.value;
         setProductData(prev => ({ ...prev, variants: newVariants }));
+    };
+    
+    // This function now just stores the selected file in the state
+    const handleFileChange = (e, index) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const newImages = [...productData.images];
+        newImages[index] = file; // Store the File object
+        setProductData(prev => ({ ...prev, images: newImages }));
+    };
+    
+    const handleVideoFileChange = (e) => {
+        const file = e.target.files[0];
+        if(file) {
+            setProductData(prev => ({ ...prev, video: file }));
+        }
     };
 
     const addVariant = () => {
@@ -87,39 +108,62 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         }
     };
 
-    const handleImageUpload = async (e, index) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (isSubmitting) return;
+        setIsSubmitting(true);
 
         const formData = new FormData();
-        formData.append('productImage', file); // 'productImage' must match the field name in Multer config
+        
+        // Append all text/data fields
+        Object.keys(productData).forEach(key => {
+            if (key !== 'images' && key !== 'video' && productData[key] !== null) {
+                // Stringify arrays/objects so they can be parsed on the backend
+                if (Array.isArray(productData[key]) || typeof productData[key] === 'object') {
+                    formData.append(key, JSON.stringify(productData[key]));
+                } else {
+                    formData.append(key, productData[key]);
+                }
+            }
+        });
+
+        // Find the first valid image file and append it.
+        // The backend route currently only supports one image named 'productImage'.
+        const mainImageFile = productData.images.find(img => img instanceof File);
+        if (mainImageFile) {
+            formData.append('productImage', mainImageFile);
+        } else if (!productToEdit) {
+            // For new products, an image is required by the backend model
+            openMessageModal('Validasi Gagal', 'Anda harus mengunggah setidaknya satu gambar utama.');
+            setIsSubmitting(false);
+            return;
+        }
+        
+        // Append video file if it exists
+        if (productData.video instanceof File) {
+            // Assuming backend handles a 'video' field
+            formData.append('video', productData.video);
+        }
 
         try {
-            const response = await api.post('/api/products/upload-image', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            const imageUrl = response.data.imageUrl;
-            const newImages = [...productData.images];
-            newImages[index] = imageUrl; // Store the URL
-            setProductData(prev => ({ ...prev, images: newImages }));
-            openMessageModal('Berhasil', 'Gambar berhasil diunggah.');
-        } catch (error) {
-            console.error('Error uploading image:', error.response?.data || error.message);
-            openMessageModal('Gagal', error.response?.data?.message || 'Gagal mengunggah gambar.');
-        }
-    };
+            let response;
+            // If we are editing, we use PUT, otherwise POST
+            if (productToEdit?._id) {
+                response = await api.put(`/api/products/${productToEdit._id}`, formData);
+            } else {
+                response = await api.post('/api/products', formData);
+            }
+            
+            openMessageModal('Berhasil', `Produk berhasil ${productToEdit ? 'diperbarui' : 'disimpan'}.`);
+            onSave(response.data); // Pass the saved product data to the parent
+            onClose();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Ensure imageUrl is set from the first uploaded image
-        const finalProductData = {
-            ...productData,
-            imageUrl: productData.images[0] || '',
-        };
-        onSave(finalProductData);
-        onClose();
+        } catch (error) {
+            console.error('Error saving product:', error.response?.data || error.message);
+            openMessageModal('Gagal', error.response?.data?.message || `Gagal ${productToEdit ? 'memperbarui' : 'menyimpan'} produk.`);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -130,6 +174,7 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                     <button onClick={onClose} className="text-2xl font-light leading-none p-1">&times;</button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
+                    {/* The form layout remains the same */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         {/* Kolom Kiri */}
                         <div className="space-y-4">
@@ -199,7 +244,7 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 <label className="font-semibold text-sm">17. Aktifkan Ekspedisi</label>
                                 <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
                                     <label><input type="checkbox" name="Hemat" checked={productData.shipping.includes('Hemat')} onChange={handleChange} /> Hemat</label>
-                                    <label><input type="checkbox" name="Regular" checked={productData.shipping.includes('Regular')} onChange={handleChange} /> Regular</label>
+                                    <label><input type="checkbox"name="Regular" checked={productData.shipping.includes('Regular')} onChange={handleChange} /> Regular</label>
                                     <label><input type="checkbox" name="Kilat" checked={productData.shipping.includes('Kilat')} onChange={handleChange} /> Kilat</label>
                                     <label><input type="checkbox" name="Sameday" checked={productData.shipping.includes('Sameday')} onChange={handleChange} /> Sameday</label>
                                     <label><input type="checkbox" name="Instant" checked={productData.shipping.includes('Instant')} onChange={handleChange} /> Instant</label>
@@ -209,7 +254,8 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                                 <label className="font-semibold text-sm">18. Upload Foto (Rasio 1:1, maks 2MB)</label>
                                 {productData.images.map((img, index) => (
                                     <div key={index} className="flex items-center gap-2 mt-1">
-                                        <input type="file" accept="image/*" className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100" />
+                                        {/* The onChange handler is now handleFileChange */}
+                                        <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, index)} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100" />
                                         {productData.images.length > 1 && <button type="button" onClick={() => removeImageInput(index)}><X size={18} className="text-red-500" /></button>}
                                     </div>
                                 ))}
@@ -217,13 +263,15 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
                             </div>
                             <div>
                                 <label className="font-semibold text-sm">19. Upload Video (Maks 30MB, 1280x1280px, 30 detik, MP4)</label>
-                                <input name="video" type="file" accept="video/mp4" className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100 mt-1"/>
+                                <input name="video" type="file" accept="video/mp4" onChange={handleVideoFileChange} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-slate-100 mt-1"/>
                             </div>
                         </div>
                     </div>
                     <div className="flex justify-end gap-4 pt-6 mt-6 border-t sticky bottom-0 bg-white py-4 z-10">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold border border-slate-300 rounded-lg hover:bg-slate-100">Batal</button>
-                        <button type="submit" className="px-6 py-2 text-sm font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700">Simpan Produk</button>
+                        <button type="submit" disabled={isSubmitting} className="px-6 py-2 text-sm font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700 disabled:bg-teal-400">
+                            {isSubmitting ? 'Menyimpan...' : 'Simpan Produk'}
+                        </button>
                     </div>
                 </form>
             </div>
