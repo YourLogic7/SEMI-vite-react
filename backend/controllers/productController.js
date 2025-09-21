@@ -34,12 +34,17 @@ const getProductById = async (req, res) => {
 // @access  Private/Admin
 const createProduct = async (req, res) => {
     try {
+        // Parse stringified fields from FormData
+        const variants = req.body.variants ? JSON.parse(req.body.variants) : [];
+        const shipping = req.body.shipping ? JSON.parse(req.body.shipping) : [];
+        const images = req.body.images ? JSON.parse(req.body.images) : [];
+
         const product = new Product({
             name: req.body.name,
             price: req.body.price,
             sellerId: req.body.sellerId,
             imageUrl: req.file ? `/${req.file.path.replace(/\\/g, '/')}` : '',
-            images: req.body.images,
+            images: images,
             brand: req.body.brand,
             category: req.body.category,
             description: req.body.description,
@@ -47,15 +52,15 @@ const createProduct = async (req, res) => {
             expired: req.body.expired,
             weight: req.body.weight,
             volume: req.body.volume,
-            variants: req.body.variants,
+            variants: variants,
             hpp: req.body.hpp,
             minPurchase: req.body.minPurchase,
             preorder: req.body.preorder,
             insurance: req.body.insurance,
             condition: req.body.condition,
             sku: req.body.sku,
-            shipping: req.body.shipping,
-            video: req.body.video,
+            shipping: shipping,
+            video: req.body.video, // Assuming video is handled separately if it's a file
         });
 
         const createdProduct = await product.save();
@@ -73,26 +78,30 @@ const updateProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
 
         if (product) {
+            // Use existing value as fallback
             product.name = req.body.name ?? product.name;
             product.price = req.body.price ?? product.price;
             product.description = req.body.description ?? product.description;
-            product.images = req.body.images ?? product.images;
             product.brand = req.body.brand ?? product.brand;
             product.category = req.body.category ?? product.category;
             product.stock = req.body.stock ?? product.stock;
             product.expired = req.body.expired ?? product.expired;
             product.weight = req.body.weight ?? product.weight;
             product.volume = req.body.volume ?? product.volume;
-            product.variants = req.body.variants ?? product.variants;
             product.hpp = req.body.hpp ?? product.hpp;
             product.minPurchase = req.body.minPurchase ?? product.minPurchase;
             product.preorder = req.body.preorder ?? product.preorder;
             product.insurance = req.body.insurance ?? product.insurance;
             product.condition = req.body.condition ?? product.condition;
             product.sku = req.body.sku ?? product.sku;
-            product.shipping = req.body.shipping ?? product.shipping;
             product.video = req.body.video ?? product.video;
 
+            // Handle stringified JSON fields
+            if (req.body.variants) product.variants = JSON.parse(req.body.variants);
+            if (req.body.shipping) product.shipping = JSON.parse(req.body.shipping);
+            if (req.body.images) product.images = JSON.parse(req.body.images);
+
+            // Handle image file upload
             if (req.file) {
                 product.imageUrl = `/${req.file.path.replace(/\\/g, '/')}`;
             } else if (req.body.imageUrl) {
