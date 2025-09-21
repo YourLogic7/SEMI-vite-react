@@ -404,8 +404,9 @@ export default function App() {
     
     const handleCredentialsSuccess = (email) => {
         dispatch({ type: 'CLOSE_MODAL', payload: { name: 'isLoginModalOpen' } });
-        dispatch({ type: 'SET_PENDING_EMAIL', payload: email });
-        dispatch({ type: 'OPEN_MODAL', payload: { name: 'isOtpModalOpen' } });
+        // dispatch({ type: 'SET_PENDING_EMAIL', payload: email }); // No longer needed if OTP is disabled
+        // dispatch({ type: 'OPEN_MODAL', payload: { name: 'isOtpModalOpen' } }); // OTP disabled
+        handleLoginSuccess(email); // Directly log in
     };
 
     const handleOtpVerification = () => {
