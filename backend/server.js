@@ -27,6 +27,9 @@ app.use('/api/sellers', sellerRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/midtrans', midtransRoutes);
 
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static('uploads'));
+
 // Koneksi ke MongoDB
 const connectDB = async () => {
   try {

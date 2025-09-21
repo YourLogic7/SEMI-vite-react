@@ -551,6 +551,7 @@ export default function App() {
                 // discountPrice: productData.discountPrice,
                 // totalStock: productData.totalStock,
             };
+            console.log('Product payload before API call:', productPayload); // Added log
 
             if (productData._id) { // Check if it's an existing product (has _id from DB)
                 const response = await api.put(`/api/products/${productData._id}`, productPayload);

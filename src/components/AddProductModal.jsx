@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, X } from 'lucide-react';
+import api from '../api'; // Import api
 
 // Komponen modal untuk menambah atau mengubah produk dengan fitur lengkap
 export default function AddProductModal({ isOpen, onClose, onSave, productToEdit, openMessageModal }) {
@@ -86,9 +87,38 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
         }
     };
 
+    const handleImageUpload = async (e, index) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('productImage', file); // 'productImage' must match the field name in Multer config
+
+        try {
+            const response = await api.post('/api/products/upload-image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            const imageUrl = response.data.imageUrl;
+            const newImages = [...productData.images];
+            newImages[index] = imageUrl; // Store the URL
+            setProductData(prev => ({ ...prev, images: newImages }));
+            openMessageModal('Berhasil', 'Gambar berhasil diunggah.');
+        } catch (error) {
+            console.error('Error uploading image:', error.response?.data || error.message);
+            openMessageModal('Gagal', error.response?.data?.message || 'Gagal mengunggah gambar.');
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(productData);
+        // Ensure imageUrl is set from the first uploaded image
+        const finalProductData = {
+            ...productData,
+            imageUrl: productData.images[0] || '',
+        };
+        onSave(finalProductData);
         onClose();
     };
 

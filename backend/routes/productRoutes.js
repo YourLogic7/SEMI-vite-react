@@ -1,7 +1,37 @@
 import express from 'express';
 import Product from '../models/product.js';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Images will be stored in the 'uploads' directory
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// @route   POST api/products/upload-image
+// @desc    Upload a product image
+// @access  Private (should be seller only)
+router.post('/upload-image', upload.single('productImage'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Tidak ada file yang diunggah.' });
+    }
+    // Return the URL of the uploaded image
+    res.status(200).json({ imageUrl: `/uploads/${req.file.filename}` });
+  } catch (error) {
+    console.error('Error uploading image:', error.message);
+    res.status(500).json({ message: 'Gagal mengunggah gambar.', error: error.message });
+  }
+});
 
 // @route   GET api/products
 // @desc    Get all products
