@@ -30,10 +30,12 @@ router.post('/create-transaction', async (req, res) => {
     };
 
     try {
+        console.log('Midtrans create-transaction request parameters:', parameter);
         const transaction = await snap.createTransaction(parameter);
+        console.log('Midtrans create-transaction successful. Token:', transaction.token);
         res.status(200).json({ token: transaction.token });
     } catch (error) {
-        console.error("Error creating Midtrans transaction:", error.message);
+        console.error("Error creating Midtrans transaction:", error);
         res.status(500).json({ message: "Failed to create Midtrans transaction", error: error.message });
     }
 });
