@@ -41,26 +41,26 @@ const createProduct = async (req, res) => {
 
         const product = new Product({
             name: req.body.name,
-            price: req.body.price,
+            price: parseFloat(req.body.price),
             sellerId: req.body.sellerId,
             imageUrl: req.file ? `/${req.file.path.replace(/\\/g, '/')}` : '',
             images: images,
             brand: req.body.brand,
             category: req.body.category,
             description: req.body.description,
-            stock: req.body.stock,
+            stock: parseInt(req.body.stock, 10),
             expired: req.body.expired,
-            weight: req.body.weight,
+            weight: parseFloat(req.body.weight),
             volume: req.body.volume,
             variants: variants,
-            hpp: req.body.hpp,
-            minPurchase: req.body.minPurchase,
+            hpp: parseFloat(req.body.hpp),
+            minPurchase: parseInt(req.body.minPurchase, 10),
             preorder: req.body.preorder,
             insurance: req.body.insurance,
             condition: req.body.condition,
             sku: req.body.sku,
             shipping: shipping,
-            video: req.body.video, // Assuming video is handled separately if it's a file
+            video: req.body.video,
         });
 
         const createdProduct = await product.save();
@@ -78,23 +78,25 @@ const updateProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
 
         if (product) {
-            // Use existing value as fallback
+            // Update fields, using ?? to keep old value if new one is null/undefined
             product.name = req.body.name ?? product.name;
-            product.price = req.body.price ?? product.price;
             product.description = req.body.description ?? product.description;
             product.brand = req.body.brand ?? product.brand;
             product.category = req.body.category ?? product.category;
-            product.stock = req.body.stock ?? product.stock;
             product.expired = req.body.expired ?? product.expired;
-            product.weight = req.body.weight ?? product.weight;
             product.volume = req.body.volume ?? product.volume;
-            product.hpp = req.body.hpp ?? product.hpp;
-            product.minPurchase = req.body.minPurchase ?? product.minPurchase;
             product.preorder = req.body.preorder ?? product.preorder;
             product.insurance = req.body.insurance ?? product.insurance;
             product.condition = req.body.condition ?? product.condition;
             product.sku = req.body.sku ?? product.sku;
             product.video = req.body.video ?? product.video;
+
+            // Convert numeric fields
+            if (req.body.price !== undefined) product.price = parseFloat(req.body.price);
+            if (req.body.stock !== undefined) product.stock = parseInt(req.body.stock, 10);
+            if (req.body.weight !== undefined) product.weight = parseFloat(req.body.weight);
+            if (req.body.hpp !== undefined) product.hpp = parseFloat(req.body.hpp);
+            if (req.body.minPurchase !== undefined) product.minPurchase = parseInt(req.body.minPurchase, 10);
 
             // Handle stringified JSON fields
             if (req.body.variants) product.variants = JSON.parse(req.body.variants);
