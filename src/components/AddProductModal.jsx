@@ -125,10 +125,11 @@ export default function AddProductModal({ isOpen, onClose, onSave, productToEdit
             }
         });
 
-        const mainImageFile = productData.images.find(img => img instanceof File);
-        if (mainImageFile) {
-            formData.append('productImage', mainImageFile);
-        }
+        productData.images.forEach((image) => {
+            if (image instanceof File) {
+                formData.append('productImage', image);
+            }
+        });
 
         if (productData.video instanceof File) {
             formData.append('video', productData.video);

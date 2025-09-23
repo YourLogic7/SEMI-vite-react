@@ -32,7 +32,7 @@ const logAfterUpload = (req, res, next) => {
     next(); // Lanjutkan ke middleware/controller berikutnya
 };
 
-router.route('/').get(getProducts).post(upload.single('productImage'), logAfterUpload, createProduct);
+router.route('/').get(getProducts).post(upload.array('productImage', 8), createProduct);
 router.route('/:id').get(getProductById).put(upload.single('productImage'), updateProduct).delete(deleteProduct);
 router.post('/upload-image', upload.single('productImage'), uploadProductImage);
 
