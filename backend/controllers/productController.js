@@ -40,7 +40,7 @@ const createProduct = async (req, res) => {
         const totalStock = variants.reduce((acc, variant) => acc + (parseInt(variant.stock, 10) || 0), 0);
         const mainPrice = variants.length > 0 ? parseFloat(variants[0].price) : 0;
 
-        const images = req.files ? req.files.map(file => `/${file.path.replace(/\/g, '/')}`) : [];
+        const images = req.files ? req.files.map(file => `/${file.path.replace(/\\/g, '/')}`) : [];
 
         const productDataForDb = {
             name: req.body.name,
@@ -105,7 +105,7 @@ const updateProduct = async (req, res) => {
             if (req.body.shipping) product.shipping = JSON.parse(req.body.shipping);
             
             if (req.files && req.files.length > 0) {
-                const newImages = req.files.map(file => `/${file.path.replace(/\/g, '/')}`);
+                const newImages = req.files.map(file => `/${file.path.replace(/\\/g, '/')}`);
                 product.images = product.images.concat(newImages);
             } else if (req.body.images) {
                  product.images = JSON.parse(req.body.images);

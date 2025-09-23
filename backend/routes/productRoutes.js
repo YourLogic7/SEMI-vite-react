@@ -6,7 +6,6 @@ import {
     createProduct,
     updateProduct,
     deleteProduct,
-    uploadProductImage,
 } from '../controllers/productController.js';
 
 const router = express.Router();
@@ -34,6 +33,6 @@ const logAfterUpload = (req, res, next) => {
 
 router.route('/').get(getProducts).post(upload.array('productImage', 8), createProduct);
 router.route('/:id').get(getProductById).put(upload.single('productImage'), updateProduct).delete(deleteProduct);
-router.post('/upload-image', upload.single('productImage'), uploadProductImage);
+
 
 export default router;

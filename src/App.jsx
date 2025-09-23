@@ -406,10 +406,10 @@ export default function App() {
     };
     
     const handleRegister = async (name, noHandphone, email, password) => {
-        console.log('App.jsx handleRegister called with:', { name, noHandphone, email, password });
+
         try {
             const response = await api.post('/api/users/register', { name, email, password, noHandphone });
-            console.log('App.jsx handleRegister API response:', response.data);
+
             const { user: newUser } = response.data;
             
             dispatch({ type: 'SET_USER', payload: newUser });
@@ -418,7 +418,6 @@ export default function App() {
             openMessageModal('Pendaftaran Berhasil', `Selamat datang, ${name}! Akun Anda berhasil dibuat.`); // Added success modal
             
         } catch (error) {
-            console.error("App.jsx handleRegister error:", error.response ? error.response.data : error.message);
             openMessageModal(
                 'Pendaftaran Gagal', 
                 error.response?.data?.message || 'Terjadi kesalahan saat mencoba mendaftar. Silakan coba lagi.'
