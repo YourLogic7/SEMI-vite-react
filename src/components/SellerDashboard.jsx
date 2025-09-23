@@ -487,7 +487,10 @@ export default function SellerDashboard({ user, products, orders, onSaveProduct,
 
             <AddProductModal
                 isOpen={isAddProductModalOpen}
-                onClose={() => setAddProductModalOpen(false)}
+                onClose={() => {
+                    setAddProductModalOpen(false);
+                    setEditingProduct(null);
+                }}
                 onSave={(product) => {
                     onSaveProduct(product);
                     setAddProductModalOpen(false);

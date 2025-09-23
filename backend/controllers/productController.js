@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Product from '../models/product.js';
 
 // @desc    Fetch all products
@@ -54,13 +55,13 @@ const createProduct = async (req, res) => {
             name: req.body.name,
             price: mainPrice,
             stock: totalStock,
-            sellerId: req.body.sellerId,
+            sellerId: mongoose.Types.ObjectId(req.body.sellerId),
             brand: req.body.brand,
             category: req.body.category,
             description: req.body.description,
-            weight: parseFloat(req.body.weight),
+            weight: req.body.weight ? parseFloat(req.body.weight) : 0,
             variants: variants,
-            minPurchase: parseInt(req.body.minPurchase, 10),
+            minPurchase: req.body.minPurchase ? parseInt(req.body.minPurchase, 10) : 1,
             preorder: req.body.preorder,
             insurance: req.body.insurance,
             condition: req.body.condition,
@@ -118,8 +119,8 @@ const updateProduct = async (req, res) => {
             product.sku = req.body.sku ?? product.sku;
             product.video = req.body.video ?? product.video;
 
-            if (req.body.weight !== undefined) product.weight = parseFloat(req.body.weight);
-            if (req.body.minPurchase !== undefined) product.minPurchase = parseInt(req.body.minPurchase, 10);
+            if (req.body.weight !== undefined) product.weight = req.body.weight ? parseFloat(req.body.weight) : 0;
+            if (req.body.minPurchase !== undefined) product.minPurchase = req.body.minPurchase ? parseInt(req.body.minPurchase, 10) : 1;
 
             if (req.body.variants) {
                 const variants = JSON.parse(req.body.variants).map(v => ({ ...v, stock: parseInt(v.stock, 10) || 0, price: parseFloat(v.price) || 0 }));
