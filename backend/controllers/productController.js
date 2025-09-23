@@ -33,12 +33,22 @@ const getProductById = async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = async (req, res) => {
+    console.log('--- [DEBUG] Entering createProduct ---');
     try {
+        console.log('[DEBUG] Raw req.body:', JSON.stringify(req.body, null, 2));
+        console.log('[DEBUG] req.files exists:', !!req.files);
+        if(req.files) {
+            console.log('[DEBUG] req.files details:', req.files.map(f => f.originalname));
+        }
+
         const variants = req.body.variants ? JSON.parse(req.body.variants) : [];
         const shipping = req.body.shipping ? JSON.parse(req.body.shipping) : [];
         
+        console.log('[DEBUG] Parsed variants count:', variants.length);
+
         const totalStock = variants.reduce((acc, variant) => acc + (parseInt(variant.stock, 10) || 0), 0);
         const mainPrice = variants.length > 0 ? parseFloat(variants[0].price) : 0;
+        console.log(`[DEBUG] Calculated totalStock: ${totalStock}, mainPrice: ${mainPrice}`);
 
         const productDataForDb = {
             name: req.body.name,
@@ -62,16 +72,30 @@ const createProduct = async (req, res) => {
         if (req.files && req.files.length > 0) {
             productDataForDb.images = req.files.map(file => `/${file.path.replace(/\\/g, '/')}`);
         }
+        console.log('[DEBUG] Mapped image paths:', productDataForDb.images);
 
         if (req.body.expired) {
             productDataForDb.expired = req.body.expired;
         }
 
+        console.log('[DEBUG] Final object for database:', JSON.stringify(productDataForDb, null, 2));
+
         const product = new Product(productDataForDb);
-        const createdProduct = await product.save();
+
+        let createdProduct;
+        try {
+            console.log('[DEBUG] Attempting to save product to database...');
+            createdProduct = await product.save();
+            console.log('[DEBUG] Product saved successfully!');
+        } catch (dbError) {
+            console.error('--- [DATABASE ERROR] --- ', dbError);
+            return res.status(500).json({ message: 'Database save failed', error: dbError.message });
+        }
+
         res.status(201).json(createdProduct);
 
     } catch (error) {
+        console.error('--- [GENERAL ERROR] --- ', error);
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
