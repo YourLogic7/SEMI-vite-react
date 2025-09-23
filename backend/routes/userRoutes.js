@@ -32,10 +32,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Email sudah terdaftar.' });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const newUser = new User({ name, email, password: hashedPassword, noHandphone, displayName: name });
+    const newUser = new User({ name, email, password, noHandphone, displayName: name });
     await newUser.save();
     
 
