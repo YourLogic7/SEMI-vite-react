@@ -41,7 +41,7 @@ const createProduct = async (req, res) => {
             console.log('[DEBUG] req.files details:', req.files.map(f => f.originalname));
         }
 
-        const variants = req.body.variants ? JSON.parse(req.body.variants) : [];
+        const variants = req.body.variants ? JSON.parse(req.body.variants).map(v => ({ ...v, stock: parseInt(v.stock, 10) || 0, price: parseFloat(v.price) || 0 })) : [];
         const shipping = req.body.shipping ? JSON.parse(req.body.shipping) : [];
         
         console.log('[DEBUG] Parsed variants count:', variants.length);
@@ -122,7 +122,7 @@ const updateProduct = async (req, res) => {
             if (req.body.minPurchase !== undefined) product.minPurchase = parseInt(req.body.minPurchase, 10);
 
             if (req.body.variants) {
-                const variants = JSON.parse(req.body.variants);
+                const variants = JSON.parse(req.body.variants).map(v => ({ ...v, stock: parseInt(v.stock, 10) || 0, price: parseFloat(v.price) || 0 }));
                 product.variants = variants;
                 product.stock = variants.reduce((acc, variant) => acc + (parseInt(variant.stock, 10) || 0), 0);
                 product.price = variants.length > 0 ? parseFloat(variants[0].price) : 0;
