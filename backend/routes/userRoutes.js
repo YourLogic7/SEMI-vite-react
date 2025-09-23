@@ -22,20 +22,23 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
-    console.log('Register endpoint hit. Request body:', req.body);
+
     const { name, email, password, noHandphone } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-      console.log('User with email already exists:', email);
+
       return res.status(400).json({ message: 'Email sudah terdaftar.' });
     }
 
-    const newUser = new User({ name, email, password, noHandphone, displayName: name });
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = new User({ name, email, password: hashedPassword, noHandphone, displayName: name });
     await newUser.save();
     
-    console.log('New user registered successfully:', newUser.email);
+
     const userResponse = newUser.toObject();
     delete userResponse.password;
 
