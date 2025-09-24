@@ -64,13 +64,23 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt for email:', email);
+    console.log('Password received:', password ? '[PASSWORD_RECEIVED]' : '[NO_PASSWORD]'); // Jangan log password mentah
+
     const user = await User.findOne({ email });
+    console.log('User found:', user ? user.email : 'None');
+    console.log('User password hash from DB:', user && user.password ? '[HASH_FOUND]' : '[NO_HASH]');
+
     if (!user || !user.password) {
+      console.log('Login failed: User not found or no password in DB.');
       return res.status(400).json({ message: 'Email atau kata sandi salah.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match result (bcrypt.compare):', isMatch);
+
     if (!isMatch) {
+      console.log('Login failed: Password mismatch.');
       return res.status(400).json({ message: 'Email atau kata sandi salah.' });
     }
 
@@ -79,6 +89,7 @@ router.post('/login', async (req, res) => {
     
     const token = generateToken(user._id);
 
+    console.log('Login successful for user:', user.email);
     res.status(200).json({ 
       message: 'Login berhasil!', 
       user: userResponse,
@@ -86,7 +97,7 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error (catch block):', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
