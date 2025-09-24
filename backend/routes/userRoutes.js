@@ -1,8 +1,16 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
 const router = express.Router();
+
+// Fungsi untuk menghasilkan token
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '30d',
+  });
+};
 
 // @route   GET api/users
 // @desc    Get all users
@@ -22,24 +30,27 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
-
     const { name, email, password, noHandphone } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-
       return res.status(400).json({ message: 'Email sudah terdaftar.' });
     }
 
     const newUser = new User({ name, email, password, noHandphone, displayName: name });
     await newUser.save();
     
-
     const userResponse = newUser.toObject();
     delete userResponse.password;
 
-    res.status(201).json({ message: 'Pendaftaran berhasil!', user: userResponse });
+    const token = generateToken(newUser._id);
+
+    res.status(201).json({ 
+      message: 'Pendaftaran berhasil!', 
+      user: userResponse,
+      token: token 
+    });
   } catch (error) {
     console.error('Error in /register endpoint:', error.message);
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -65,11 +76,17 @@ router.post('/login', async (req, res) => {
 
     const userResponse = user.toObject();
     delete userResponse.password;
+    
+    const token = generateToken(user._id);
 
-    res.status(200).json({ message: 'Login berhasil!', user: userResponse });
+    res.status(200).json({ 
+      message: 'Login berhasil!', 
+      user: userResponse,
+      token: token
+    });
 
   } catch (error) {
-    console.error('Login error:', error); // Add detailed logging
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
