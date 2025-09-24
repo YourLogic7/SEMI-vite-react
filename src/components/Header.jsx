@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Komponen untuk bagian atas (header) halaman web (dengan notifikasi fungsional)
-export default function Header({ user, onLoginClick, onRegisterClick, onLogoutClick, onTrackOrderClick, onCartClick, cartItemCount, onNavigate, searchQuery, onSearchSubmit, onOpenStoreClick, notifications, setNotifications }) {
+export default function Header({ user, hasStore, onLoginClick, onRegisterClick, onLogoutClick, onTrackOrderClick, onCartClick, cartItemCount, onNavigate, searchQuery, onSearchSubmit, onOpenStoreClick, notifications, setNotifications }) {
     const [isNotifOpen, setNotifOpen] = useState(false);
     const [localQuery, setLocalQuery] = useState(searchQuery);
 
@@ -105,9 +105,30 @@ export default function Header({ user, onLoginClick, onRegisterClick, onLogoutCl
                                 </>
                             )}
                         </div>
-                        <a href="#" onClick={(e) => { e.preventDefault(); onOpenStoreClick(); }} className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors">
-                            Mulai Berjualan
-                        </a>
+                        {hasStore ? (
+                            <a
+                                href="#"
+                                onClick={e => {
+                                    e.preventDefault();
+                                                                            handleNavigate('sellerDashboard'); // Menggunakan 'sellerDashboard' sebagai rute yang benar
+
+                                }}
+                                className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
+                            >
+                                Toko Anda
+                            </a>
+                        ) : (
+                            <a
+                                href="#"
+                                onClick={e => {
+                                    e.preventDefault();
+                                    onOpenStoreClick();
+                                }}
+                                className="px-4 py-2 text-sm font-bold text-teal-600 border-2 border-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
+                            >
+                                Mulai Berjualan
+                            </a>
+                        )}
                     </div>
                 </div>
             </div>

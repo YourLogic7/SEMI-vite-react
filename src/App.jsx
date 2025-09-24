@@ -770,6 +770,7 @@ export default function App() {
                 notifications={notifications}
                 setNotifications={(newNotifs) => dispatch({ type: 'SET_NOTIFICATIONS', payload: newNotifs })}
                 isSuperAdmin={isSuperAdmin}
+                hasStore={user?.role?.includes('seller')}
             />
             <main className="flex-grow">
                 {renderPage()}

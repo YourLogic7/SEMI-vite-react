@@ -55,7 +55,7 @@ const createProduct = async (req, res) => {
             name: req.body.name,
             price: mainPrice,
             stock: totalStock,
-            sellerId: mongoose.Types.ObjectId(req.body.sellerId),
+            sellerId: new mongoose.Types.ObjectId(req.body.sellerId),
             brand: req.body.brand,
             category: req.body.category,
             description: req.body.description,
